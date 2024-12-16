@@ -1,0 +1,6 @@
+module Pods_Presenta {
+  umbrella header "Pods-Presenta-umbrella.h"
+
+  export *
+  module * { export * }
+}

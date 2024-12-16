@@ -1,0 +1,6 @@
+module Pods_Presenta_PresentaTests {
+  umbrella header "Pods-Presenta-PresentaTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
