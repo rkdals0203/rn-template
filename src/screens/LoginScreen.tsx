@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Alert, Platform } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../App';
-import { supabase } from '../lib/supabase';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { appleAuth } from '@invertase/react-native-apple-authentication';
 import { AUTH_CONFIG } from '../config/auth';
+import { handleGoogleLogin } from '../utils/auth/handleGoogleLogin';
+import { handleAppleLogin } from '../utils/auth/handleAppleLogin';
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -21,48 +21,19 @@ GoogleSignin.configure({
 const LoginScreen: React.FC<LoginScreenProps> = () => {
   const [loading, setLoading] = useState(false);
 
-  const handleGoogleLogin = async () => {
+  const onGoogleLoginPress = async () => {
     try {
       setLoading(true);
-      await GoogleSignin.hasPlayServices();
-      const signInResult = await GoogleSignin.signIn();
-      
-      if (!signInResult) throw new Error("Sign in failed!");
-
-      const tokens = await GoogleSignin.getTokens();
-      if (!tokens.accessToken) throw new Error("Access token is missing!");
-
-      await supabase.auth.signInWithIdToken({
-        provider: "google",
-        token: tokens.accessToken,
-      });
-
-    } catch (error) {
-      Alert.alert('Login Failed', 'Failed to sign in with Google');
+      await handleGoogleLogin();
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAppleLogin = async () => {
+  const onAppleLoginPress = async () => {
     try {
       setLoading(true);
-      const appleAuthRequestResponse = await appleAuth.performRequest({
-        requestedOperation: appleAuth.Operation.LOGIN,
-        requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
-      });
-
-      if (!appleAuthRequestResponse.identityToken) {
-        throw new Error('No identity token');
-      }
-
-      await supabase.auth.signInWithIdToken({
-        provider: 'apple',
-        token: appleAuthRequestResponse.identityToken,
-      });
-
-    } catch (error) {
-      Alert.alert('Login Failed', 'Failed to sign in with Apple');
+      await handleAppleLogin();
     } finally {
       setLoading(false);
     }
@@ -75,7 +46,7 @@ const LoginScreen: React.FC<LoginScreenProps> = () => {
       </View>
       <TouchableOpacity 
         style={styles.signInButton}
-        onPress={handleGoogleLogin}
+        onPress={onGoogleLoginPress}
         disabled={loading}
       >
         <Text style={styles.buttonText}>Google로 로그인</Text>
@@ -83,7 +54,7 @@ const LoginScreen: React.FC<LoginScreenProps> = () => {
       {Platform.OS === 'ios' && (
         <TouchableOpacity 
           style={[styles.signInButton, styles.appleButton]}
-          onPress={handleAppleLogin}
+          onPress={onAppleLoginPress}
           disabled={loading}
         >
           <Text style={styles.buttonText}>Apple로 로그인</Text>
